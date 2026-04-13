@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rela Solver 💕</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,900;1,400&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: #fdf4fb;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* ===== NAV ===== */
+        nav {
+            background: linear-gradient(135deg, #e0449a, #9b3dcc);
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        nav button {
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: rgba(255,255,255,0.85);
+            padding: 13px 14px;
+            cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        nav button:hover { color: #fff; background: rgba(255,255,255,0.12); }
+        nav button.active { color: #fff; border-bottom: 3px solid #fff; background: rgba(255,255,255,0.15); }
+
+        /* ===== PAGES ===== */
+        .page { display: none; min-height: calc(100vh - 51px); padding: 40px 20px 60px; }
+        .page.active { display: block; }
+        .container { max-width: 760px; margin: 0 auto; }
+
+        .page-header { text-align: center; margin-bottom: 35px; }
+        .page-header .pg-emoji { font-size: 3em; margin-bottom: 8px; display: block; }
+        .page-header h2 {
+            font-size: 2em; font-weight: 900;
+            background: linear-gradient(135deg, #e0449a, #9b3dcc);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            margin-bottom: 8px;
+        }
+        .page-header p { color: #888; font-size: 1em; }
+
+        /* ===== HOME ===== */
+        #home {
+            background: radial-gradient(ellipse at top, #f9e8ff 0%, #fdf4fb 60%);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .home-inner { text-align: center; max-width: 680px; padding: 20px 0; }
+        .home-hearts { font-size: 3.5em; animation: heartbeat 2s ease-in-out infinite; display: block; margin-bottom: 16px; }
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); } 14% { transform: scale(1.15); }
+            28% { transform: scale(1); } 42% { transform: scale(1.08); } 56% { transform: scale(1); }
+        }
+        .home-title {
+            font-size: 3.8em; font-weight: 900;
+            background: linear-gradient(135deg, #e0449a, #9b3dcc);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            line-height: 1.1; margin-bottom: 24px;
+        }
+        .home-text { font-size: 1.07em; line-height: 1.85; color: #555; margin-bottom: 16px; text-align: left; }
+        .home-text strong { color: #9b3dcc; }
+        .home-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 30px; }
+
+        .ontspan-box {
+            background: linear-gradient(135deg, #fff0f9, #f3e8ff);
+            border-radius: 16px; padding: 18px 22px; margin: 22px 0;
+            border: 2px dashed #d88fe0; text-align: left;
+        }
+        .ontspan-box p { color: #666; font-size: 0.97em; line-height: 1.7; margin-bottom: 10px; }
+        .ontspan-link {
+            display: inline-block; margin-top: 4px; margin-right: 8px;
+            padding: 9px 18px; border-radius: 20px; font-weight: 800; font-size: 0.92em;
+            cursor: pointer; border: none; font-family: 'Nunito', sans-serif;
+            transition: transform 0.15s;
+        }
+        .ontspan-link:hover { transform: scale(1.05); }
+        .ontspan-link.syb { background: #dde8ff; color: #3a5fc7; }
+        .ontspan-link.fleur { background: #ffe4f4; color: #c73a80; }
+
+        /* ===== PHOTO GALLERY HOME ===== */
+        .photo-gallery { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin: 30px 0 10px; }
+        .photo-frame { position: relative; width: 160px; flex-shrink: 0; }
+        .photo-frame img {
+            width: 100%; aspect-ratio: 3/4; object-fit: cover;
+            border-radius: 16px; box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+            display: block; border: 4px solid #fff; transition: transform 0.2s;
+            transform: rotate(var(--tilt, 0deg));
+        }
+        .photo-frame:nth-child(1) { --tilt: -2deg; }
+        .photo-frame:nth-child(2) { --tilt: 1.5deg; margin-top: 16px; }
+        .photo-frame:nth-child(3) { --tilt: -1deg; }
+        .photo-frame img:hover { transform: rotate(0deg) scale(1.05); }
+        .photo-caption { text-align: center; font-size: 0.78em; color: #aaa; margin-top: 6px; font-style: italic; }
+
+        /* ===== BUTTONS ===== */
+        .btn-main {
+            background: linear-gradient(135deg, #e0449a, #9b3dcc);
+            color: #fff; border: none; padding: 13px 30px; border-radius: 50px;
+            font-family: 'Nunito', sans-serif; font-size: 1em; font-weight: 800;
+            cursor: pointer; box-shadow: 0 5px 20px rgba(155,61,204,0.35);
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(155,61,204,0.45); }
+        .btn-main:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+        .btn-alt {
+            background: linear-gradient(135deg, #ffb347, #ff6b6b);
+            color: #fff; border: none; padding: 13px 30px; border-radius: 50px;
+            font-family: 'Nunito', sans-serif; font-size: 1em; font-weight: 800;
+            cursor: pointer; transition: transform 0.15s;
+        }
+        .btn-alt:hover { transform: translateY(-2px); }
+
+        .btn-small {
+            background: #fff; color: #9b3dcc; border: 2px solid #9b3dcc;
+            padding: 8px 16px; border-radius: 20px;
+            font-family: 'Nunito', sans-serif; font-size: 0.88em; font-weight: 700;
+            cursor: pointer; transition: all 0.15s;
+        }
+        .btn-small:hover { background: #9b3dcc; color: #fff; }
+
+        /* ===== WHEEL ===== */
+        .wheel-controls {
+            background: #fff; border-radius: 18px; padding: 20px 24px;
+            margin-bottom: 20px; box-shadow: 0 4px 18px rgba(155,61,204,0.09);
+        }
+        .chance-labels { display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 8px; font-size: 0.95em; }
+        .fleur-label { color: #e0449a; }
+        .syb-label { color: #5b8af0; }
+        input[type="range"] {
+            width: 100%; -webkit-appearance: none; height: 10px;
+            border-radius: 5px; outline: none; cursor: pointer; margin: 6px 0;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 24px; height: 24px;
+            border-radius: 50%; background: #fff; border: 3px solid #9b3dcc;
+            cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .wheel-center { text-align: center; }
+        .wheel-wrapper { position: relative; display: inline-block; margin-bottom: 8px; }
+        .wheel-pointer {
+            position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; border-left: 14px solid transparent;
+            border-right: 14px solid transparent; border-top: 28px solid #2d2d2d;
+            z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+        }
+        #wheelCanvas { border-radius: 50%; box-shadow: 0 8px 40px rgba(0,0,0,0.18); display: block; }
+        .result-box {
+            background: #fff; border-radius: 18px; padding: 22px; margin-top: 20px;
+            box-shadow: 0 4px 18px rgba(155,61,204,0.09); text-align: center;
+            font-size: 1.3em; font-weight: 800; min-height: 80px;
+            display: flex; align-items: center; justify-content: center; color: #444;
+            transition: background 0.4s;
+        }
+
+        /* ===== TIPS ===== */
+        .tip-card {
+            background: #fff; border-radius: 18px; padding: 20px 22px; margin: 14px 0;
+            box-shadow: 0 4px 18px rgba(155,61,204,0.09); border-left: 5px solid #9b3dcc;
+        }
+        .tip-num { font-size: 0.82em; font-weight: 800; color: #9b3dcc; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .tip-text { color: #444; line-height: 1.75; }
+        .tip-foot { font-size: 0.78em; color: #bbb; font-style: italic; margin-top: 8px; }
+        .expert-box {
+            background: linear-gradient(135deg, #e0449a, #9b3dcc);
+            color: #fff; border-radius: 14px; padding: 16px 20px;
+            margin-bottom: 20px; text-align: center; font-size: 0.97em; line-height: 1.6;
+        }
+
+        /* ===== VERBINDING ===== */
+        .vcard {
+            background: #fff; border-radius: 18px; padding: 18px 22px; margin: 14px 0;
+            box-shadow: 0 4px 18px rgba(155,61,204,0.09);
+            display: flex; gap: 16px; align-items: flex-start;
+        }
+        .vcard-emoji { font-size: 2.2em; flex-shrink: 0; margin-top: 2px; }
+        .vcard-content h3 { font-size: 1.05em; font-weight: 800; color: #e0449a; margin-bottom: 5px; }
+        .vcard-content p { color: #666; line-height: 1.65; font-size: 0.96em; }
+
+        /* ===== SYB VLIEGTUIG ===== */
+        .airplane-hero {
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            border-radius: 20px; padding: 30px; margin-bottom: 28px; text-align: center; color: white;
+        }
+        .airplane-hero h2 { color: #fff; font-size: 1.7em; -webkit-text-fill-color: #fff; background: none; margin-bottom: 8px; }
+        .airplane-hero p { color: rgba(255,255,255,0.75); }
+        .fact-section { margin: 24px 0; }
+        .fact-section h3 {
+            font-size: 1.1em; font-weight: 900; color: #1a1a2e;
+            margin-bottom: 14px; padding-bottom: 8px; border-bottom: 3px solid #4a90d9;
+        }
+        .fact-card {
+            background: #fff; border-radius: 14px; padding: 16px 18px; margin: 10px 0;
+            box-shadow: 0 3px 14px rgba(0,0,50,0.08); display: flex; gap: 14px; align-items: flex-start;
+        }
+        .fact-emoji { font-size: 1.8em; flex-shrink: 0; }
+        .fact-content h4 { font-size: 1em; font-weight: 800; color: #1a1a2e; margin-bottom: 4px; }
+        .fact-content p { font-size: 0.92em; color: #666; line-height: 1.6; }
+        .airport-rank {
+            display: inline-flex; align-items: center; justify-content: center;
+            background: #4a90d9; color: #fff; width: 28px; height: 28px; min-width: 28px;
+            border-radius: 50%; font-weight: 900; font-size: 0.85em; flex-shrink: 0;
+        }
+        .trivia-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; margin-top: 14px; }
+        .trivia-item { background: linear-gradient(135deg, #f0f4ff, #e8f0ff); border-radius: 12px; padding: 14px 16px; }
+        .trivia-item .trivia-number { font-size: 1.5em; font-weight: 900; color: #4a90d9; }
+        .trivia-item .trivia-label { font-size: 0.82em; color: #666; margin-top: 2px; }
+
+        /* ===== FLEUR TRAVEL ===== */
+        .travel-hero {
+            background: linear-gradient(135deg, #2d6a4f, #40916c, #74c69d);
+            border-radius: 20px; padding: 30px; margin-bottom: 28px; text-align: center; color: white;
+        }
+        .travel-hero h2 { color: #fff; font-size: 1.7em; -webkit-text-fill-color: #fff; background: none; margin-bottom: 8px; }
+        .travel-hero p { color: rgba(255,255,255,0.8); }
+        .travel-section { margin: 24px 0; }
+        .travel-section h3 {
+            font-size: 1.1em; font-weight: 900; color: #2d6a4f;
+            margin-bottom: 14px; padding-bottom: 8px; border-bottom: 3px solid #74c69d;
+        }
+        .dest-card {
+            background: #fff; border-radius: 14px; padding: 16px 18px; margin: 10px 0;
+            box-shadow: 0 3px 14px rgba(0,80,0,0.08); display: flex; gap: 14px; align-items: flex-start;
+        }
+        .dest-flag { font-size: 2em; flex-shrink: 0; }
+        .dest-content h4 { font-size: 1em; font-weight: 800; color: #2d6a4f; margin-bottom: 4px; }
+        .dest-content p { font-size: 0.92em; color: #666; line-height: 1.6; }
+        .dest-tag {
+            display: inline-block; background: #d8f3dc; color: #2d6a4f;
+            padding: 2px 8px; border-radius: 20px; font-size: 0.75em; font-weight: 700; margin-top: 5px; margin-right: 4px;
+        }
+        .tip-travel {
+            background: #fff; border-radius: 14px; padding: 14px 18px; margin: 10px 0;
+            box-shadow: 0 3px 14px rgba(0,80,0,0.08); border-left: 4px solid #74c69d;
+            color: #444; line-height: 1.7; font-size: 0.96em;
+        }
+
+        /* ===== FLEUR FOTO SECTIE ===== */
+        .fleur-photos {
+            background: linear-gradient(135deg, #fff0f9, #fce8ff);
+            border-radius: 18px; padding: 24px; margin-bottom: 28px; text-align: center;
+        }
+        .fleur-photos h3 { color: #e0449a; font-size: 1.2em; margin-bottom: 18px; }
+        .fleur-photo-grid { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+        .fleur-photo-frame { width: 175px; flex-shrink: 0; }
+        .fleur-photo-frame img {
+            width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 14px;
+            box-shadow: 0 6px 22px rgba(0,0,0,0.18); border: 4px solid #fff;
+            transition: transform 0.2s; transform: rotate(var(--r, 0deg));
+        }
+        .fleur-photo-frame:nth-child(1) { --r: -2.5deg; }
+        .fleur-photo-frame:nth-child(2) { --r: 1deg; margin-top: 14px; }
+        .fleur-photo-frame:nth-child(3) { --r: -1.5deg; }
+        .fleur-photo-frame img:hover { transform: rotate(0deg) scale(1.05); }
+        .fleur-photo-cap { font-size: 0.78em; color: #c077b8; margin-top: 6px; font-style: italic; }
+
+        @media (max-width: 540px) {
+            .home-title { font-size: 2.6em; }
+            nav button { padding: 11px 9px; font-size: 11px; }
+            .page-header h2 { font-size: 1.6em; }
+            .trivia-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<nav id="mainNav">
+    <button onclick="showPage('home')" class="active">💕 Home</button>
+    <button onclick="showPage('wheel')">🎡 Het Rad</button>
+    <button onclick="showPage('syb')">✈️ Syb</button>
+    <button onclick="showPage('fleur')">🌍 Fleur</button>
+    <button onclick="showPage('tips')">💡 Rela Tips</button>
+    <button onclick="showPage('verbinding')">🔗 Verbinding</button>
+</nav>
+
+<!-- ===================== HOME ===================== -->
+<div id="home" class="page active">
+    <div class="container" style="display:flex; align-items:center; justify-content:center; min-height:calc(100vh - 51px);">
+        <div class="home-inner">
+            <span class="home-hearts">💕</span>
+            <h1 class="home-title">Rela Solver</h1>
+
+            <p class="home-text">
+                Ha Syb en Fleur, wat zijn jullie leuk samen. Genoeg geslijmd, want de waarheid is natuurlijk dat een relatie best wel moeilijk is, zeker als je ff naar je wederhelft kijkt. Tjongejonge. Daarom bied ik jullie deze prachtige survivaltool aan!
+            </p>
+            <p class="home-text">
+                Ten eerste kan deze tool een eindeloze discussie beslechten door het gebruik van het lot. Geef een slinger aan het rad en klaar is kees 😊. Daarnaast heeft ene heer J. Verzijl allemaal handige <strong>#rela tips</strong> voor jullie gereed staan. En mochten jullie je nog een keer vervelen, geen nood, want dan kan je terecht op de <strong>#verbindingggg</strong> pagina.
+            </p>
+
+            <div class="ontspan-box">
+                <p>🧘 En als je je partner even écht zat bent — geen oordeel, het overkomt de besten — ga dan rustig even naar jouw eigen ontspan-pagina:</p>
+                <button class="ontspan-link syb" onclick="showPage('syb')">✈️ Syb's ontspan pagina</button>
+                <button class="ontspan-link fleur" onclick="showPage('fleur')">🌍 Fleur's ontspan pagina</button>
+            </div>
+
+            <div class="photo-gallery">
+                <div class="photo-frame">
+                    <img src="fleurrr.jpg" alt="Fleur" onerror="this.parentElement.style.display='none'">
+                    <div class="photo-caption">Fleur being Fleur 😄</div>
+                </div>
+                <div class="photo-frame">
+                    <img src="fleurrrr.jpg" alt="Fleur" onerror="this.parentElement.style.display='none'">
+                    <div class="photo-caption">Portret van een vrouw in haar element</div>
+                </div>
+                <div class="photo-frame">
+                    <img src="fleurrrrrrrrr.jpg" alt="Fleur" onerror="this.parentElement.style.display='none'">
+                    <div class="photo-caption">Relatie goals 💕</div>
+                </div>
+            </div>
+
+            <div class="home-btns">
+                <button class="btn-main" onclick="showPage('wheel')">🎡 Draai het rad</button>
+                <button class="btn-alt" onclick="showPage('tips')">💡 Zie de tips</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== WHEEL ===================== -->
+<div id="wheel" class="page">
+    <div class="container">
+        <div class="page-header">
+            <span class="pg-emoji">🎡</span>
+            <h2>Wie heeft er gelijk?</h2>
+            <p>Laat het lot beslissen. Geen discussie meer.</p>
+        </div>
+
+        <div class="wheel-controls">
+            <p style="font-weight:700; margin-bottom:12px;">Kansen aanpassen:</p>
+            <div class="chance-labels">
+                <span class="fleur-label">🌸 Fleur: <span id="fleurPct">50</span>%</span>
+                <span class="syb-label">Syb: <span id="sybPct">50</span>% 🎯</span>
+            </div>
+            <input type="range" id="chanceSlider" min="5" max="95" value="50" oninput="updateChances(this.value)">
+            <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
+                <button class="btn-small" onclick="resetFiftyFifty()">⚖️ 50 / 50</button>
+                <button class="btn-small" onclick="setChance(80)">💅 80% Fleur</button>
+                <button class="btn-small" onclick="setChance(20)">🎯 80% Syb</button>
+            </div>
+            <p style="font-size:0.82em; color:#bbb; margin-top:8px;">Schuif of kies een preset</p>
+        </div>
+
+        <div class="wheel-center">
+            <div class="wheel-wrapper">
+                <div class="wheel-pointer"></div>
+                <canvas id="wheelCanvas"></canvas>
+            </div>
+            <br>
+            <button class="btn-main" id="spinBtn" onclick="spinWheel()" style="font-size:1.1em; padding:15px 45px; margin-top:10px;">
+                🌀 Draai het rad!
+            </button>
+        </div>
+
+        <div class="result-box" id="resultBox">
+            🎯 Druk op de knop om te draaien!
+        </div>
+    </div>
+</div>
+
+<!-- ===================== SYB'S VERMAAK ===================== -->
+<div id="syb" class="page">
+    <div class="container">
+        <div class="airplane-hero">
+            <div style="font-size:3.5em; margin-bottom:12px;">✈️</div>
+            <h2>Syb's Ontspan Pagina</h2>
+            <p>Voor als Fleur even te veel is. Hier: alles over vliegtuigen, luchthavens en de lucht in.</p>
+        </div>
+
+        <div class="fact-section">
+            <h3>🔢 Dat wist je niet</h3>
+            <div class="trivia-grid">
+                <div class="trivia-item"><div class="trivia-number">6.000.000</div><div class="trivia-label">onderdelen in een Boeing 747</div></div>
+                <div class="trivia-item"><div class="trivia-number">37 mln</div><div class="trivia-label">vluchten per jaar wereldwijd</div></div>
+                <div class="trivia-item"><div class="trivia-number">1× per jaar</div><div class="trivia-label">wordt een gemiddeld vliegtuig door bliksem geraakt</div></div>
+                <div class="trivia-item"><div class="trivia-number">270 km/u</div><div class="trivia-label">waarop vliegtuigbanden een landing overleven</div></div>
+                <div class="trivia-item"><div class="trivia-number">−60°C</div><div class="trivia-label">buiten temperatuur op kruishoogte</div></div>
+                <div class="trivia-item"><div class="trivia-number">18u 50min</div><div class="trivia-label">langste non-stop vlucht: Singapore → New York</div></div>
+                <div class="trivia-item"><div class="trivia-number">555</div><div class="trivia-label">passagiers in een volle Airbus A380</div></div>
+                <div class="trivia-item"><div class="trivia-number">1919</div><div class="trivia-label">oprichtingsjaar KLM — oudste luchtvaartmaatschappij nog onder dezelfde naam</div></div>
+            </div>
+        </div>
+
+        <div class="fact-section">
+            <h3>🤯 Random vliegtuig-feiten</h3>
+            <div class="fact-card">
+                <div class="fact-emoji">🟠</div>
+                <div class="fact-content">
+                    <h4>De black box is oranje</h4>
+                    <p>De vluchtrecorder heet de "black box" maar is felOranje — zodat 'ie makkelijker te vinden is na een crash. De naam stamt uit de begindagen toen de doos zwart aangeslagen was van rook.</p>
+                </div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-emoji">🍽️</div>
+                <div class="fact-content">
+                    <h4>Piloten mogen niet hetzelfde eten</h4>
+                    <p>De piloot en co-piloot krijgen altijd een ander maaltje. Als een van hen voedselvergiftiging krijgt, kan de ander het toestel nog landen. Niet gezellig, maar verstandig.</p>
+                </div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-emoji">👅</div>
+                <div class="fact-content">
+                    <h4>Eten smaakt anders in de lucht</h4>
+                    <p>Op kruishoogte proef je zoet en zout zo'n 30% minder intens. De droge lucht en lage luchtdruk verdoven je smaakpapillen. Vliegtuigmaaltijden worden extra gekruid om dit te compenseren.</p>
+                </div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-emoji">⚡</div>
+                <div class="fact-content">
+                    <h4>Blikseminslag = gewoon doorgaan</h4>
+                    <p>Vliegtuigen worden gemiddeld één keer per jaar door bliksem geraakt. De aluminium huid geleidt de stroom er gelijk weer uit. Reden voor een noodlanding? Vrijwel nooit.</p>
+                </div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-emoji">🔔</div>
+                <div class="fact-content">
+                    <h4>De ding-dong heeft een code</h4>
+                    <p>Die belletjes in het vliegtuig hebben betekenis. Eén ding = de piloot heeft een berichtje voor de crew. Drie keer = turbulentie op komst. Snel achter elkaar = noodsituatie. Nu ga je er altijd op letten.</p>
+                </div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-emoji">🛋️</div>
+                <div class="fact-content">
+                    <h4>Cabin crew slaapt stiekem</h4>
+                    <p>Op lange vluchten heeft de Boeing 777 en 787 een verborgen slaapruimte voor de bemanning boven de cabine, bereikbaar via een verborgen trap. De meeste passagiers weten niet eens dat die bestaat.</p>
+                </div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-emoji">🚿</div>
+                <div class="fact-content">
+                    <h4>Het water aan boord is niet om te drinken</h4>
+                    <p>Studies tonen aan dat het water in de tanks van vliegtuigen — voor het spoelen van de wc's én soms voor koffie — bacteriën bevat die je thuis niet in de kraan verwacht. Neem fleswater. Of koffie. Maar weet wat je doet.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="fact-section">
+            <h3>😱 Gekste luchthavens ter wereld</h3>
+            <div class="fact-card">
+                <div class="fact-emoji">🏝️</div>
+                <div class="fact-content">
+                    <h4>Juancho E. Yrausquin Airport — Saba (Caribisch Nederland)</h4>
+                    <p>Kortste commerciële startbaan ter wereld: slechts 400 meter. Omringd door kliffen en zee. Landen hier vereist een speciale bevoegdheid. Eén foutje en je vliegt letterlijk de zee in.</p>
+                </div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-emoji">⛰️</div>
+                <div class="fact-content">
+                    <h4>Tenzing-Hillary Airport — Lukla, Nepal</h4>
+                    <p>Op 2.860 meter hoogte, in de Himalaya. De startbaan loopt bergopwaarts en eindigt op een klif. Regelmatig tot de gevaarlijkste luchthavens ter wereld bestempeld. En toch vliegen er dagelijks trekkers naartoe.</p>
+                </div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-emoji">🌊</div>
+                <div class="fact-content">
+                    <h4>Barra Airport — Schotland</h4>
+                    <p>De enige luchthaven ter wereld waar vluchten worden gepland op de getijden. De startbaan ís het strand. Bij vloed staat die gewoon onder water.</p>
+                </div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-emoji">🚗</div>
+                <div class="fact-content">
+                    <h4>Gibraltar Airport</h4>
+                    <p>De hoofdweg van Gibraltar — Winston Churchill Avenue — kruist letterlijk de startbaan. Als er een vliegtuig landt, gaan de slagbomen omlaag en stopt het verkeer. Gewoon. Elke dag.</p>
+                </div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-emoji">🏄</div>
+                <div class="fact-content">
+                    <h4>Princess Juliana Airport — Sint Maarten</h4>
+                    <p>Vliegtuigen naderen hier zo laag over Maho Beach dat mensen op het strand de onderkant kunnen aanraken. Er staat een bord: "Jet blast can cause injury or death." Toeristen negeren dit volledig.</p>
+                </div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-emoji">🏔️</div>
+                <div class="fact-content">
+                    <h4>Courchevel Airport — Franse Alpen</h4>
+                    <p>Startbaan met een helling van 18,5%, midden in de Alpen. Je landt bergopwaarts en vertrekt bergafwaarts. Alleen speciaal gecertificeerde piloten mogen hier landen. Geen alternatieve naderingsprocedure beschikbaar.</p>
+                </div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-emoji">🌏</div>
+                <div class="fact-content">
+                    <h4>Daocheng Yading Airport — China</h4>
+                    <p>Hoogste commerciële luchthaven ter wereld: 4.411 meter boven zeeniveau. De lucht is zo ijl dat vliegtuigen een veel langere startbaan nodig hebben. Piloten moeten speciaal getraind zijn voor deze hoogte.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="fact-section">
+            <h3>🏆 Grootste luchthavens ter wereld</h3>
+            <div class="fact-card">
+                <div class="airport-rank">1</div>
+                <div class="fact-content">
+                    <h4>King Fahd International — Saudi-Arabië</h4>
+                    <p>Op oppervlakte: 776 km² — groter dan Bahrein als land. Zo groot dat er een eigen bus en treinnetwerk binnenin rijdt.</p>
+                </div>
+            </div>
+            <div class="fact-card">
+                <div class="airport-rank">2</div>
+                <div class="fact-content">
+                    <h4>Denver International — VS</h4>
+                    <p>135 km² — groter dan San Francisco. Heeft een bagagesysteem van 33 km aan transportbanden ondergronds. Bekend om bizarre pieken-dak en talloze conspiracy theories over wat er onder gebouwd zou zijn.</p>
+                </div>
+            </div>
+            <div class="fact-card">
+                <div class="airport-rank">3</div>
+                <div class="fact-content">
+                    <h4>Beijing Daxing International — China</h4>
+                    <p>700.000 m² terminal, ontworpen door Zaha Hadid. Gebouwd in slechts 4 jaar. Ziet er vanuit de lucht uit als een zeester. Kan 72 miljoen passagiers per jaar verwerken.</p>
+                </div>
+            </div>
+            <div class="fact-card">
+                <div class="airport-rank">🇳🇱</div>
+                <div class="fact-content">
+                    <h4>Amsterdam Schiphol — Nederland</h4>
+                    <p>Ligt 4 meter onder zeeniveau — je landt letterlijk onder de zeespiegel. Enige luchthaven ter wereld met een eigen museum (Rijksmuseum filiaal achter de paspoortcontrole). Al bijna 25 jaar in de Europese top 5.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="fact-section">
+            <h3>🥇 Luchtvaartrecords</h3>
+            <div class="fact-card">
+                <div class="fact-emoji">🚀</div>
+                <div class="fact-content">
+                    <h4>Snelste lijnvlucht ooit: 3u 27min — Londen → New York (Concorde, 1996)</h4>
+                    <p>Normaal duurt dat 7-8 uur. De Concorde vloog op 2× de geluidssnelheid op 18.000 meter hoogte. Uit de vaart genomen in 2003: te duur, te lawaaierig, te weinig stoelen.</p>
+                </div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-emoji">✈️</div>
+                <div class="fact-content">
+                    <h4>Meest gevlogen toestel ter wereld: Boeing 737</h4>
+                    <p>Elke 1,5 seconde landt er ergens ter wereld een Boeing 737. Er zijn meer dan 10.000 exemplaren gebouwd. De eerste vloog in 1967 — en hij vliegt nog steeds.</p>
+                </div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-emoji">🌍</div>
+                <div class="fact-content">
+                    <h4>Drukste luchthaven: Hartsfield-Jackson Atlanta (VS)</h4>
+                    <p>Al bijna 25 jaar op rij de drukste luchthaven ter wereld. Meer dan 100 miljoen passagiers per jaar. Elke 37 seconden vertrekt of landt er een vliegtuig.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== FLEUR'S VERMAAK ===================== -->
+<div id="fleur" class="page">
+    <div class="container">
+        <div class="travel-hero">
+            <div style="font-size:3.5em; margin-bottom:12px;">🌍</div>
+            <h2>Fleur's Ontspan Pagina</h2>
+            <p>Voor als Syb even te veel is. Hier: primitief reizen, onbekende bestemmingen en avontuur.</p>
+        </div>
+
+        <div class="fleur-photos">
+            <h3>📸 Fleur in haar element</h3>
+            <div class="fleur-photo-grid">
+                <div class="fleur-photo-frame">
+                    <img src="fleurrr.jpg" alt="Fleur">
+                    <div class="fleur-photo-cap">Een vrouw met een plan 🌸</div>
+                </div>
+                <div class="fleur-photo-frame">
+                    <img src="fleurrrr.jpg" alt="Fleur">
+                    <div class="fleur-photo-cap">Lachend door het leven ✨</div>
+                </div>
+                <div class="fleur-photo-frame">
+                    <img src="fleurrrrrrrrr.jpg" alt="Fleur">
+                    <div class="fleur-photo-cap">Klaar voor het volgende avontuur ✈️</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="travel-section">
+            <h3>🗺️ Nog niet geweest? Schaam je.</h3>
+            <p style="color:#666; font-size:0.92em; margin-bottom:14px;">Nepal ✓ &nbsp;|&nbsp; Zuid-Afrika ✓ &nbsp;|&nbsp; Brazilië ✓ — leuk. Nu het échte werk:</p>
+
+            <div class="dest-card">
+                <div class="dest-flag">🇧🇹</div>
+                <div class="dest-content">
+                    <h4>Bhutan — Het gelukkigste land</h4>
+                    <p>Het enige land dat toerisme niet in euro's meet maar in geluk. Verplichte dagvergoeding houdt massa-toerisme buiten de deur. Tiger's Nest monastery hangt letterlijk aan een rotswand op 3.000 meter. Je klimt erheen. Er is geen lift.</p>
+                    <span class="dest-tag">🏔️ Bergen</span><span class="dest-tag">🧘 Spiritueel</span><span class="dest-tag">😌 Rustig</span>
+                </div>
+            </div>
+            <div class="dest-card">
+                <div class="dest-flag">🌿</div>
+                <div class="dest-content">
+                    <h4>Socotra Island — Jemen</h4>
+                    <p>Soms de "Galapagos van de Indische Oceaan" genoemd. Hier groeien Drakenbloedsbomen die er echt uitzien als aliens. 37% van de planten bestaat nergens anders ter wereld. Bereikbaar via Oman.</p>
+                    <span class="dest-tag">🌲 Alien flora</span><span class="dest-tag">🏝️ Eiland</span><span class="dest-tag">🦎 Uniek</span>
+                </div>
+            </div>
+            <div class="dest-card">
+                <div class="dest-flag">🐻‍❄️</div>
+                <div class="dest-content">
+                    <h4>Svalbard — Noorwegen</h4>
+                    <p>Poolberen zijn in de meerderheid. Buiten de nederzetting ben je verplicht een geweer mee te nemen. Geen visum nodig. Permanent daglicht in de zomer, permanent donker in de winter. Verlaten Russische mijnsteden staan er nog.</p>
+                    <span class="dest-tag">🐻‍❄️ Ijsberen</span><span class="dest-tag">❄️ Arctisch</span><span class="dest-tag">🌞 Middernachtzon</span>
+                </div>
+            </div>
+            <div class="dest-card">
+                <div class="dest-flag">🇲🇳</div>
+                <div class="dest-content">
+                    <h4>Mongolië — Einde van de wereld</h4>
+                    <p>Dunst bevolkt land ter wereld per km². Eén op de drie Mongolen is nog steeds nomadisch. Je slaapt in een ger, rijdt op een paard, en er is geen wifi. Dat is de bedoeling.</p>
+                    <span class="dest-tag">🐎 Nomadisch</span><span class="dest-tag">🏕️ Primitief</span><span class="dest-tag">🌅 Einde-van-de-wereld</span>
+                </div>
+            </div>
+            <div class="dest-card">
+                <div class="dest-flag">🇫🇴</div>
+                <div class="dest-content">
+                    <h4>Faeröer Eilanden — Dramatische kliffen</h4>
+                    <p>Officieel Deens maar voelt als een andere planeet. Kliffen, schapen, mist, watervallen, en geen massa-toerisme. Sommige dorpen zijn alleen per helikopter bereikbaar. Een van de best bewaarde geheimen van Europa.</p>
+                    <span class="dest-tag">🌊 Dramatisch</span><span class="dest-tag">🐑 Schapen > mensen</span><span class="dest-tag">🌫️ Mysterieus</span>
+                </div>
+            </div>
+            <div class="dest-card">
+                <div class="dest-flag">🇰🇬</div>
+                <div class="dest-content">
+                    <h4>Kirgizië — Centraal-Aziatisch juweeltje</h4>
+                    <p>Epische berglandschappen (Tian Shan gebergte), jurtkampen aan alpenmeren op 3.000 meter, en paardentrekken waarbij je dagen niemand anders tegenkomt. Vrijwel geen westerse toeristen.</p>
+                    <span class="dest-tag">⛺ Jurtcamp</span><span class="dest-tag">🏔️ Onontdekt</span><span class="dest-tag">🐎 Paard</span>
+                </div>
+            </div>
+            <div class="dest-card">
+                <div class="dest-flag">🇬🇪</div>
+                <div class="dest-content">
+                    <h4>Georgië — Kaukasus + 8.000 jaar wijn</h4>
+                    <p>Wijn wordt hier al 8.000 jaar gemaakt in klei amforen. De bakermat van de wijn. Tbilisi heeft zwavelbaden en een oud-stadje dat je niet verwacht. De bergdorpen in Kazbegi zijn het Instagram-plaatje dat niemand kent.</p>
+                    <span class="dest-tag">🍷 Wijn</span><span class="dest-tag">🏔️ Bergen</span><span class="dest-tag">🕌 Cultuur</span>
+                </div>
+            </div>
+            <div class="dest-card">
+                <div class="dest-flag">🇹🇱</div>
+                <div class="dest-content">
+                    <h4>Timor-Leste — Jongste land ter wereld</h4>
+                    <p>Onafhankelijk sinds 2002. Bijna niemand gaat erheen. Pristine koraalriffen die nauwelijks bezocht worden. Bergtreks die je echt voor jezelf hebt. Je kan zeggen dat je in een van de minst bezochte landen bent geweest.</p>
+                    <span class="dest-tag">🤿 Duiken</span><span class="dest-tag">🏝️ Onontdekt</span><span class="dest-tag">💎 Verborgen parel</span>
+                </div>
+            </div>
+            <div class="dest-card">
+                <div class="dest-flag">🇪🇹</div>
+                <div class="dest-content">
+                    <h4>Ethiopië — Bakermat van de mensheid</h4>
+                    <p>Eigen alfabet, eigen kalender (het is er momenteel het jaar 2017), koffie origineel van hier, Lalibela met kerken uitgehouwen in de rotsen, en de Danakil woestijn als heetste plek ter wereld. Niets hier is normaal.</p>
+                    <span class="dest-tag">☕ Koffie</span><span class="dest-tag">🌋 Vulkanen</span><span class="dest-tag">📜 Geschiedenis</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="travel-section">
+            <h3>🎒 Gouden regels voor primitief reizen</h3>
+            <div class="tip-travel"><strong>🏨 Slaap in een hangmat</strong> — Als er een optie is om in een hangmat te slapen (Amazone, Thailand, Colombia), neem die dan altijd. Je slaapt beter, het is goedkoper, en je hebt een beter verhaal.</div>
+            <div class="tip-travel"><strong>🍽️ Eet waar plastic stoelen staan</strong> — De beste maaltijden ter wereld worden geserveerd aan tafels met wiebelende plastic poten onder tl-verlichting. Hoe minder het lijkt op een restaurant, hoe lekkerder het is.</div>
+            <div class="tip-travel"><strong>🗣️ Leer 5 woorden per land</strong> — Hallo, dank je, lekker, hoeveel en sorry. Met die vijf woorden kom je overal. De lokale bevolking waardeert het buiten proportie.</div>
+            <div class="tip-travel"><strong>🚌 Neem de bus als iedereen zegt van niet</strong> — "Je kunt beter vliegen." "De weg is slecht." "Het duurt 14 uur." Neem. Altijd. De bus. Je ziet dingen die je vanuit een vliegtuig nooit ziet.</div>
+            <div class="tip-travel"><strong>🎒 Max 7 kilogram rugzak</strong> — Zoveel meer vrijheid. Je hoeft niet in te checken. Alles wat je mee wil nemen maar denkt niet nodig te hebben: thuis laten. Je hebt het niet nodig.</div>
+            <div class="tip-travel"><strong>👴 Vraag de oudste persoon in de ruimte</strong> — Voor restaurant-aanbevelingen, voor plekjes buiten de toeristische route. Die weet het altijd beter dan Tripadvisor.</div>
+            <div class="tip-travel"><strong>📵 Ga waar het wifi slecht is</strong> — De mooiste plekken hebben geen bereik. Zet je telefoon in vliegtuigstand en kijk gewoon om je heen. Er zijn dingen.</div>
+            <div class="tip-travel"><strong>🌧️ Ga in het laagseizoen</strong> — Minder toeristen, lagere prijzen, lokaler gevoel. Ja, het kan regenen. Trek een regenjas aan.</div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== TIPS ===================== -->
+<div id="tips" class="page">
+    <div class="container">
+        <div class="page-header">
+            <span class="pg-emoji">💡</span>
+            <h2>#Rela Tips</h2>
+            <p>Exclusief advies van de wereldberoemde relatiedeskundige</p>
+        </div>
+        <div class="expert-box">
+            👨‍🔬 <strong>J. Verzijl</strong> — Relatiecoach, filosoof, en uw broer/zwager.<br>
+            <span style="font-size:0.88em; opacity:0.85;">Gecertificeerd door niemand in het bijzonder, maar vol goede bedoelingen.</span>
+        </div>
+        <div id="tipsList"></div>
+        <p style="font-size:0.8em; color:#bbb; text-align:center; margin-top:20px;">⚠️ J. Verzijl aanvaardt geen aansprakelijkheid voor relatieschade voortvloeiend uit het opvolgen van bovenstaand advies.</p>
+    </div>
+</div>
+
+<!-- ===================== VERBINDING ===================== -->
+<div id="verbinding" class="page">
+    <div class="container">
+        <div class="page-header">
+            <span class="pg-emoji">🔗</span>
+            <h2>#verbindingggg</h2>
+            <p>Soms moet je even opnieuw verbinding maken. Hier zijn jullie opties:</p>
+        </div>
+        <div id="verbindingList"></div>
+    </div>
+</div>
+
+<script>
+// ============================================================
+//  NAVIGATION
+// ============================================================
+const PAGES = ['home','wheel','syb','fleur','tips','verbinding'];
+function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('nav button')[PAGES.indexOf(id)].classList.add('active');
+    window.scrollTo(0, 0);
+}
+
+// ============================================================
+//  WHEEL
+// ============================================================
+let spinning = false, curAngle = 0, fleurPct = 50;
+
+function initCanvas() {
+    const canvas = document.getElementById('wheelCanvas');
+    const size = Math.min(360, window.innerWidth - 60);
+    canvas.width = size; canvas.height = size;
+    drawWheel(curAngle);
+}
+
+function resetFiftyFifty() { setChance(50); document.getElementById('chanceSlider').value = 50; }
+function setChance(val) { document.getElementById('chanceSlider').value = val; updateChances(val); }
+
+function updateChances(val) {
+    fleurPct = parseInt(val);
+    document.getElementById('fleurPct').textContent = fleurPct;
+    document.getElementById('sybPct').textContent = 100 - fleurPct;
+    const s = document.getElementById('chanceSlider');
+    s.style.background = `linear-gradient(to right, #e0449a ${fleurPct}%, #5b8af0 ${fleurPct}%)`;
+    drawWheel(curAngle);
+}
+
+function drawWheel(angle) {
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height, cx = W/2, cy = H/2, r = cx - 8;
+    ctx.clearRect(0, 0, W, H);
+    const fAngle = (fleurPct / 100) * 2 * Math.PI;
+    const sAngle = 2 * Math.PI - fAngle;
+
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, angle, angle + fAngle); ctx.closePath();
+    ctx.fillStyle = '#e0449a'; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, angle + fAngle, angle + 2*Math.PI); ctx.closePath();
+    ctx.fillStyle = '#5b8af0'; ctx.fill();
+
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 4;
+    [0, fAngle].forEach(a => { ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(angle+a)*r, cy + Math.sin(angle+a)*r); ctx.stroke(); });
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2*Math.PI); ctx.strokeStyle = '#fff'; ctx.lineWidth = 5; ctx.stroke();
+
+    const fs = Math.max(14, Math.min(20, W / 20));
+    if (fleurPct >= 20) {
+        ctx.save(); ctx.translate(cx, cy); ctx.rotate(angle + fAngle/2);
+        ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.font = `bold ${fs}px Nunito,sans-serif`;
+        ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 5;
+        ctx.fillText('🌸 Fleur heeft', r*.58, -fs/2+4); ctx.fillText('gelijk!', r*.58, fs/2+4); ctx.restore();
+    }
+    if (fleurPct <= 80) {
+        ctx.save(); ctx.translate(cx, cy); ctx.rotate(angle + fAngle + sAngle/2);
+        ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.font = `bold ${fs}px Nunito,sans-serif`;
+        ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 5;
+        ctx.fillText('🎯 Syb heeft', r*.58, -fs/2+4); ctx.fillText('gelijk!', r*.58, fs/2+4); ctx.restore();
+    }
+    ctx.beginPath(); ctx.arc(cx, cy, 18, 0, 2*Math.PI); ctx.fillStyle = '#fff';
+    ctx.shadowColor = 'rgba(0,0,0,.15)'; ctx.shadowBlur = 6; ctx.fill();
+    ctx.shadowBlur = 0; ctx.strokeStyle = '#ddd'; ctx.lineWidth = 2; ctx.stroke();
+}
+
+function spinWheel() {
+    if (spinning) return;
+    spinning = true;
+    document.getElementById('spinBtn').disabled = true;
+    document.getElementById('resultBox').innerHTML = '🌀 Aan het draaien...';
+    const totalRot = (6 + Math.random()*5) * 2*Math.PI;
+    const startAngle = curAngle, endAngle = startAngle + totalRot;
+    const duration = 4000 + Math.random()*1500, startTime = performance.now();
+    function easeOut(t) { return 1 - Math.pow(1-t, 3); }
+    function frame(now) {
+        const elapsed = now - startTime, progress = Math.min(elapsed/duration, 1);
+        curAngle = startAngle + (endAngle - startAngle) * easeOut(progress);
+        drawWheel(curAngle);
+        if (progress < 1) { requestAnimationFrame(frame); return; }
+        spinning = false;
+        document.getElementById('spinBtn').disabled = false;
+        const topAngle = -Math.PI/2;
+        const relPos = ((topAngle - curAngle) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI);
+        const fleurArc = (fleurPct/100) * 2*Math.PI;
+        const result = document.getElementById('resultBox');
+        if (relPos < fleurArc) {
+            result.innerHTML = '🌸 <strong>Fleur heeft gelijk!</strong> Syb, accepteer je lot. 😇';
+            result.style.background = 'linear-gradient(135deg,#fff0f6,#fce4f8)';
+        } else {
+            result.innerHTML = '🎯 <strong>Syb heeft gelijk!</strong> Fleur, dit keer moet je toegeven. 😄';
+            result.style.background = 'linear-gradient(135deg,#eef2ff,#e4ecff)';
+        }
+    }
+    requestAnimationFrame(frame);
+}
+
+initCanvas();
+window.addEventListener('resize', initCanvas);
+updateChances(50);
+
+// ============================================================
+//  TIPS
+// ============================================================
+const TIPS = [
+    { num:'Tip #1 — De Gelijk-wet', text:'Als jullie ruzie hebben, onthoud: degene die het meest huilt heeft gelijk. Statistisch bewezen*.', foot:'* Niet statistisch bewezen.' },
+    { num:'Tip #2 — De Sorry-formule', text:'"Sorry" werkt het beste als het gepaard gaat met chocolade, pizza, of allebei. Een sorry zonder snack is gewoon een geluid.' },
+    { num:'Tip #3 — De Is-er-iets-techniek', text:'Als je partner vraagt "is er iets?", is het antwoord altijd "nee". Dan zijn er twee opties: (a) je partner gelooft je, of (b) je partner gelooft je niet maar heeft ook geen zin in de discussie. Win-win.' },
+    { num:'Tip #4 — De Complimenten-strategie', text:'Zeg elke dag drie dingen die je waardeert aan je partner. "Jij ademt", "jij bestaat" en "jij bent hier" tellen alle drie als losse complimenten.' },
+    { num:'Tip #5 — Nooit boos naar bed', text:'Ga nooit boos naar bed. Blijf gewoon wakker en blijf ruziemaken tot iemand in slaap valt. Die persoon heeft dan tegelijk verloren én gewonnen. Kwantumfysica.' },
+    { num:'Tip #6 — De Afwas-strategie', text:'Degene die het minst afwast compenseert dat onbewust met extra lieve woordjes. Klopt dit? Waarschijnlijk niet. Maar het is een fijne gedachte terwijl jij weer staat af te wassen.' },
+    { num:'Tip #7 — Over communicatie', text:'Communicatie is de sleutel tot een goede relatie. Maar vergeet niet: zwijgen op het juiste moment is ook een vorm van communicatie. Sterker nog: soms de meest efficiënte.' },
+    { num:'Tip #8 — De GPS-wet', text:'Bij elke discussie over de route geldt: degene die het hardst praat heeft gelijk. Empirisch bewezen in talloze auto\'s op weg naar vakantiebestemmingen.' }
+];
+document.getElementById('tipsList').innerHTML = TIPS.map(t =>
+    `<div class="tip-card"><div class="tip-num">${t.num}</div><div class="tip-text">${t.text}</div>${t.foot?`<div class="tip-foot">${t.foot}</div>`:''}</div>`
+).join('');
+
+// ============================================================
+//  VERBINDING
+// ============================================================
+const VERBINDING = [
+    { emoji:'🎲', title:'Speel een bordspel', desc:'Kies een spelletje en speel het samen. Extra punten als je allebei een beetje vals speelt en er vervolgens ruzie over maakt. Ruzie over een bordspel is ook verbinding.' },
+    { emoji:'🍿', title:'Filmavond zonder scrollen', desc:'Leg de telefoons omgekeerd op tafel. Wie het eerst zijn telefoon omdraait, mag de afwas doen. Wedden dat jullie ineens heel geïnteresseerd zijn in die film?' },
+    { emoji:'🚶', title:'Wandelen zonder GPS', desc:'Ga een wandeling zonder Google Maps. Kijk wie het eerst een route wil checken. Die persoon is officieel de minst avontuurlijke van de twee.' },
+    { emoji:'🍳', title:'Samen koken', desc:'Kook samen iets ingewikkelds. Als het mislukt: rustig maar duidelijk naar de ander wijzen. Als het lukt: samen blij zijn.' },
+    { emoji:'📸', title:'Fotoboek van jullie relatie', desc:'Zoek de oudste foto\'s van jullie samen op en stuur ze naar elkaar. Schrik niet van hoe jullie eruitzagen. Of wel. Dat is ook verbindend.' },
+    { emoji:'🤔', title:'36 vragen die van iemand houden', desc:'Google "36 questions to fall in love" en stel ze elkaar. Sommige antwoorden leiden tot meer inzicht, of een klein beetje ongemak. Allebei goed.' },
+    { emoji:'💌', title:'Briefjes schrijven', desc:'Schrijf drie dingen op die je waardeert aan je partner en geef het briefje af. Gewoon omdat het lief is. J. Verzijl zou trots zijn.' },
+    { emoji:'🎤', title:'Karaoke voor twee', desc:'Zet YouTube karaoke aan en zing samen een nummer. Hoe slechter jullie klinken, hoe beter. Samen lachen is ook verbinding.' }
+];
+document.getElementById('verbindingList').innerHTML = VERBINDING.map(v =>
+    `<div class="vcard"><div class="vcard-emoji">${v.emoji}</div><div class="vcard-content"><h3>${v.title}</h3><p>${v.desc}</p></div></div>`
+).join('');
+</script>
+</body>
+</html>
